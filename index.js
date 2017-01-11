@@ -10,7 +10,7 @@ var convertToPdf = function(html_utf8, file_name, event, context, s3) {
 		var pdf = memStream.read();
 
 		var params = {
-			Bucket : "truecar-billing-pdf",
+			Bucket : "tc-html-to-pdf",
 			Key : file_name + ".pdf",
 			Body : pdf
 		}
@@ -38,14 +38,12 @@ exports.handler = function(event, context) {
 			Bucket: srcBucket,
 			Key: file_name
 		}, function(err, data){
-			console.log(data);
 			html_utf8 = data.Body.toString('utf8');
 			convertToPdf(html_utf8, file_name, event, context, s3);
 		});
 	} else if(event.html_base64) {
 		html_utf8 = new Buffer(event.html_base64, 'base64').toString('utf8');
 		file_name = event.file_name
+		convertToPdf(html_utf8, file_name, event, context, s3);
 	}
-
-	convertToPdf(html_utf8, file_name, event, context, s3);
 };
