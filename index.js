@@ -4,14 +4,14 @@ var AWS = require('aws-sdk');
 
 process.env['PATH'] = process.env['PATH'] + ':' + process.env['LAMBDA_TASK_ROOT'];
 
-var convertToPdf = function(html_utf8, file_name, event, context, s3) {
+var convertToPdf = function(htmlUtf8, fileName, event, context, s3) {
 	var memStream = new MemoryStream();
-	wkhtmltopdf(html_utf8, event.options, function(code, signal) {
+	wkhtmltopdf(htmlUtf8, event.options, function(code, signal) {
 		var pdf = memStream.read();
 
 		var params = {
 			Bucket : "tc-html-to-pdf",
-			Key : file_name + ".pdf",
+			Key : fileName + ".pdf",
 			Body : pdf
 		}
 
@@ -26,24 +26,17 @@ var convertToPdf = function(html_utf8, file_name, event, context, s3) {
 }
 
 exports.handler = function(event, context) {
-	var s3 = new AWS.S3();
-	var html_utf8;
-	var file_name;
-
-	console.log(event);
 	if(event.Records) {
-		var srcBucket = event.Records[0].s3.bucket.name;
-    file_name = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
+		var bucketName = event.Records[0].s3.bucket.name;
+    var fileName = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
+
+		var s3 = new AWS.S3();
 		s3.getObject({
-			Bucket: srcBucket,
-			Key: file_name
+			Bucket: bucketName,
+			Key: fileName
 		}, function(err, data){
-			html_utf8 = data.Body.toString('utf8');
-			convertToPdf(html_utf8, file_name, event, context, s3);
+			var htmlUtf8 = data.Body.toString('utf8');
+			convertToPdf(htmlUtf8, fileName, event, context, s3);
 		});
-	} else if(event.html_base64) {
-		html_utf8 = new Buffer(event.html_base64, 'base64').toString('utf8');
-		file_name = event.file_name
-		convertToPdf(html_utf8, file_name, event, context, s3);
 	}
 };
