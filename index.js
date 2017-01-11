@@ -14,7 +14,7 @@ var convertToPdf = function(htmlUtf8, event, callback) {
 exports.handler = function(event, context) {
 	if(event.Records) {
 		var bucketName = event.Records[0].s3.bucket.name;
-    var fileName = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
+		var fileName = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
 
 		var params = {
 			Bucket: bucketName,
